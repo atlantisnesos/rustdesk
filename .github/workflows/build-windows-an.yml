@@ -1,0 +1,42 @@
+name: Build Windows - Atlantis Nesos
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*-an'
+
+jobs:
+  build-windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.6'
+          channel: 'stable'
+
+      - name: Install dependencies (vcpkg)
+        run: |
+          vcpkg install libvpx:x64-windows-static libyuv:x64-windows-static opus:x64-windows-static aom:x64-windows-static
+
+      - name: Build
+        run: |
+          python3 res/inline-sciter.py
+          cargo build --release --features inline
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rustdesk-windows-an
+          path: target/release/rustdesk.exe
+          retention-days: 7
