@@ -20,10 +20,13 @@ jobs:
           targets: x86_64-pc-windows-msvc
 
       - name: Set VCPKG_ROOT
+        shell: pwsh
         run: echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
 
-      - name: Install dependencies (vcpkg)
-        run: vcpkg install
+      - name: Install dependencies (vcpkg, static)
+        shell: pwsh
+        run: |
+          & "$env:VCPKG_ROOT\vcpkg.exe" install --triplet x64-windows-static --x-install-root="$env:VCPKG_ROOT\installed"
 
       - name: Download Sciter
         run: python3 res/inline-sciter.py
