@@ -9,6 +9,8 @@ on:
 jobs:
   build-windows:
     runs-on: windows-2022
+    env:
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}\vcpkg-bincache
     steps:
       - uses: actions/checkout@v4
         with:
@@ -19,14 +21,37 @@ jobs:
         with:
           targets: x86_64-pc-windows-msvc
 
+      # Cache de Rust: las siguientes compilaciones reutilizan lo ya compilado
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+
       - name: Set VCPKG_ROOT
         shell: pwsh
-        run: echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
+        run: |
+          echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
+          New-Item -ItemType Directory -Force -Path "$env:VCPKG_DEFAULT_BINARY_CACHE" | Out-Null
+
+      # Cache de vcpkg (ffmpeg, libvpx, opus...): es lo que mas tarda
+      - name: Restore vcpkg cache
+        uses: actions/cache/restore@v4
+        with:
+          path: vcpkg-bincache
+          key: vcpkg-x64-windows-static-${{ hashFiles('vcpkg.json') }}
 
       - name: Install dependencies (vcpkg, static)
         shell: pwsh
         run: |
           & "$env:VCPKG_ROOT\vcpkg.exe" install --triplet x64-windows-static --x-install-root="$env:VCPKG_ROOT\installed"
+
+      - name: Save vcpkg cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: vcpkg-bincache
+          key: vcpkg-x64-windows-static-${{ hashFiles('vcpkg.json') }}
+        continue-on-error: true
 
       - name: Inline Sciter UI
         run: python3 res/inline-sciter.py
@@ -34,16 +59,38 @@ jobs:
       - name: Build
         run: cargo build --release --features inline
 
-      - name: Package exe + sciter.dll
+      # Red de seguridad: exe + dll sueltos, por si falla el empaquetado
+      - name: Prepare exe + sciter.dll
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path dist | Out-Null
-          Copy-Item target/release/rustdesk.exe dist/
-          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/c-smile/sciter-sdk/master/bin.win/x64/sciter.dll" -OutFile dist/sciter.dll
+          New-Item -ItemType Directory -Force -Path pack | Out-Null
+          Copy-Item target/release/rustdesk.exe pack/
+          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/c-smile/sciter-sdk/master/bin.win/x64/sciter.dll" -OutFile pack/sciter.dll
 
-      - name: Upload artifact
+      - name: Upload exe + dll (loose files)
         uses: actions/upload-artifact@v4
         with:
-          name: rustdesk-windows-an
-          path: dist/
+          name: rustdesk-windows-an-files
+          path: pack/
+          retention-days: 7
+
+      # Un unico .exe con rustdesk.exe + sciter.dll dentro
+      - name: Pack into a single exe
+        shell: pwsh
+        run: |
+          python3 -m pip install -r libs/portable/requirements.txt
+          Push-Location libs/portable
+          python3 generate.py -f ../../pack -o . -e ../../pack/rustdesk.exe
+          if ($LASTEXITCODE -ne 0) { throw "generate.py failed" }
+          Pop-Location
+          $packer = Get-ChildItem -Path target, libs/portable/target -Recurse -Filter rustdesk-portable-packer.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $packer) { throw "rustdesk-portable-packer.exe not found" }
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item $packer.FullName dist/AtlantisNesos-Remote.exe
+
+      - name: Upload single exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: AtlantisNesos-Remote
+          path: dist/AtlantisNesos-Remote.exe
           retention-days: 7
