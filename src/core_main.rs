@@ -159,12 +159,20 @@ pub fn core_main() -> Option<CoreMainAction> {
     }
     #[cfg(windows)]
     {
+        // Atlantis Nesos: solo la version llamada "-qs" (o lanzada con --quick_support por el empaquetador)
+        let qs_named = _is_quick_support || is_quick_support_exe(&arg_exe);
         _is_quick_support |= !crate::platform::is_installed()
             && args.is_empty()
             && (is_quick_support_exe(&arg_exe)
                 || config::LocalConfig::get_option("pre-elevate-service") == "Y"
                 || (!click_setup && crate::platform::is_elevated(None).unwrap_or(false)));
         crate::portable_service::client::set_quick_support(_is_quick_support);
+        // Atlantis Nesos: version "-qs" para clientes -> solo recibir conexiones, sin instalar
+        if qs_named && !crate::platform::is_installed() {
+            let mut hard = config::HARD_SETTINGS.write().unwrap();
+            hard.insert("conn-type".to_owned(), "incoming".to_owned());
+            hard.insert("disable-installation".to_owned(), "Y".to_owned());
+        }
     }
     let mut log_name = "".to_owned();
     // Keep portable-service logs under a stable directory name.

@@ -87,10 +87,12 @@ jobs:
           if (-not $packer) { throw "rustdesk-portable-packer.exe not found" }
           New-Item -ItemType Directory -Force -Path dist | Out-Null
           Copy-Item $packer.FullName dist/AtlantisNesos-Remote.exe
+          # Mismo programa; el sufijo -qs activa el modo QuickSupport (clientes: solo recibir, sin instalar)
+          Copy-Item $packer.FullName dist/AtlantisNesos-Soporte-qs.exe
 
-      - name: Upload single exe
+      - name: Upload single exe (full + QuickSupport)
         uses: actions/upload-artifact@v4
         with:
           name: AtlantisNesos-Remote
-          path: dist/AtlantisNesos-Remote.exe
+          path: dist/
           retention-days: 7
