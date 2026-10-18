@@ -4,7 +4,8 @@ stdout.println("is_xfce: ", is_xfce);
 
 // See default height in common.tis `msgbox()`.
 const msgbox_default_height = 180;
-const incoming_only_width = 180;
+const incoming_only_width = 260;
+const incoming_only_height = 380; // Atlantis Nesos: ventana compacta QuickSupport
 
 const outgoing_only = handler.is_outgoing_only();
 const incoming_only = handler.is_incoming_only();
@@ -717,7 +718,7 @@ class App: Reactor.Component
                     <div .left-pane style={incoming_only ? "width:*" : ""}>
                     <div>
                         {is_custom_client && handler.get_builtin_option("hide-powered-by-me") != "Y" ? <div .link #powered-by style="opacity:0.5;font-size:0.8em;text-decoration:underline">{translate('powered_by_me')}</div> : ""}
-                        <div #an-logo style={"width:*; height:28px; margin-bottom:0.4em; background-size:contain; background-repeat:no-repeat; background-position:50% 50%; background-image:url('" + an_logo_h + "')"} />
+                        <div #an-logo style={"width:*; height:" + (incoming_only ? "40px" : "28px") + "; margin-bottom:0.4em; background-size:contain; background-repeat:no-repeat; background-position:50% 50%; background-image:url('" + an_logo_h + "')"} />
                         <div .title style="flow:horizontal; position:relative; height:1.6em; line-height:1.6em">
                             <span>{translate('Your Desktop')}</span>
                             {outgoing_only ? <span .link #open-settings style="position:absolute; right:0; bottom:0; transform:scale(0.6); transform-origin:right bottom; opacity:0.85">{svg_menu}</span> : ""}
@@ -1382,7 +1383,10 @@ function self.closing() {
 
 function self.ready() {
     var r = handler.get_size();
-    if (isReasonableSize(r) && r[2] > 0) {
+    if (incoming_only) {
+        // Atlantis Nesos: QuickSupport siempre compacto y centrado, sin usar el tamano guardado
+        centerize(scaleIt(incoming_only_width), scaleIt(incoming_only_height));
+    } else if (isReasonableSize(r) && r[2] > 0) {
         var (sx, sy, sw, sh) = view.screenBox(#workarea, #rectw);
         if (r[2] >= sw && r[3] >= sh) {
             self.timer(1ms, function() { view.windowState = View.WINDOW_MAXIMIZED; });
