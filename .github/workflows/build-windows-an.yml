@@ -28,15 +28,22 @@ jobs:
         run: |
           & "$env:VCPKG_ROOT\vcpkg.exe" install --triplet x64-windows-static --x-install-root="$env:VCPKG_ROOT\installed"
 
-      - name: Download Sciter
+      - name: Inline Sciter UI
         run: python3 res/inline-sciter.py
 
       - name: Build
         run: cargo build --release --features inline
 
+      - name: Package exe + sciter.dll
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item target/release/rustdesk.exe dist/
+          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/c-smile/sciter-sdk/master/bin.win/x64/sciter.dll" -OutFile dist/sciter.dll
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: rustdesk-windows-an
-          path: target/release/rustdesk.exe
+          path: dist/
           retention-days: 7
