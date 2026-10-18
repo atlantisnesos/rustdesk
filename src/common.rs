@@ -1256,7 +1256,7 @@ fn get_api_server_(api: String, custom: String) -> String {
             return format!("http://{}", s);
         }
     }
-    "https://admin.rustdesk.com".to_owned()
+    "http://141.94.251.158:21114".to_owned()
 }
 
 #[inline]
@@ -2405,7 +2405,8 @@ pub fn create_symmetric_key_msg(their_pk_b: [u8; 32]) -> (Bytes, Bytes, secretbo
 
 #[inline]
 pub fn using_public_server() -> bool {
-    crate::get_custom_rendezvous_server(get_option("custom-rendezvous-server")).is_empty()
+    // Atlantis Nesos: servidor propio integrado, nunca el publico
+    false
 }
 
 pub struct ThrottledInterval {
