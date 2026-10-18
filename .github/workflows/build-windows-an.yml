@@ -26,8 +26,7 @@ jobs:
           channel: 'stable'
 
       - name: Install dependencies (vcpkg)
-        run: |
-          vcpkg install libvpx:x64-windows-static libyuv:x64-windows-static opus:x64-windows-static aom:x64-windows-static
+        run: vcpkg install
 
       - name: Build
         run: |
