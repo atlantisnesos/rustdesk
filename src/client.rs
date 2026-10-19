@@ -857,7 +857,11 @@ impl Client {
         };
 
         let switch_code = interface.get_switch_code();
-        let legacy_secure = !key.is_empty() && (!token.is_empty() || !switch_code.is_empty());
+        // Atlantis Nesos: nuestro hbbs (open source) no hace intercambio de claves por TCP.
+        // Con sesion iniciada (token) el cliente esperaba ese intercambio y fallaba con
+        // "Failed to secure tcp: deadline has elapsed". No lo pedimos y no enviamos el token.
+        let legacy_secure = false;
+        let _ = &token;
         let carries_offer = webrtc_offerer.as_ref().and_then(|g| g.stream()).is_some();
         // Counted from before the key exchange, so the exchange spends the UDP NAT test's own
         // wait rather than replacing it: the test runs beside both.
@@ -952,7 +956,7 @@ impl Client {
         };
         msg_out.set_punch_hole_request(PunchHoleRequest {
             id: peer.to_owned(),
-            token: token.to_owned(),
+            token: String::new(), // Atlantis Nesos: hbbs open source no usa el token
             nat_type: nat_type.into(),
             licence_key: key.to_owned(),
             conn_type: conn_type.into(),
@@ -1805,9 +1809,7 @@ impl Client {
                 .await
                 .with_context(|| "Failed to connect to rendezvous server")?;
 
-            if !key.is_empty() && (!token.is_empty() || !switch_code.is_empty()) {
-                secure_tcp(&mut socket, key).await?;
-            }
+            // Atlantis Nesos: sin intercambio de claves con hbbs open source (ver _start_inner)
 
             ipv4 = socket.local_addr().is_ipv4();
             let mut msg_out = RendezvousMessage::new();
@@ -1822,7 +1824,7 @@ impl Client {
             );
             msg_out.set_request_relay(RequestRelay {
                 id: peer.to_owned(),
-                token: token.to_owned(),
+                token: String::new(), // Atlantis Nesos: hbbs open source no usa el token
                 uuid: uuid.clone(),
                 relay_server: relay_server.clone(),
                 secure,
