@@ -173,6 +173,16 @@ pub fn core_main() -> Option<CoreMainAction> {
             hard.insert("conn-type".to_owned(), "incoming".to_owned());
             hard.insert("disable-installation".to_owned(), "Y".to_owned());
         }
+        // Atlantis Nesos: version "Cliente" instalada (MSI que deja incoming.txt junto al
+        // programa) -> solo recibir conexiones, tambien una vez instalada.
+        if let Ok(exe) = std::env::current_exe() {
+            if exe.with_file_name("incoming.txt").exists() {
+                config::HARD_SETTINGS
+                    .write()
+                    .unwrap()
+                    .insert("conn-type".to_owned(), "incoming".to_owned());
+            }
+        }
     }
     let mut log_name = "".to_owned();
     // Keep portable-service logs under a stable directory name.

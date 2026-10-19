@@ -243,6 +243,23 @@ jobs:
           popd
           Copy-Item $msi.FullName ./dist/AtlantisNesos-Remote.msi
 
+      # Segundo MSI "Cliente": mismo programa + incoming.txt -> instalado en modo solo recibir
+      - name: Build msi (Cliente, solo recibir)
+        continue-on-error: true
+        run: |
+          git checkout -- res/msi
+          Set-Content -Path ./rustdesk/incoming.txt -Value 'Atlantis Nesos - modo solo recibir' -NoNewline
+          pushd ./res/msi
+          python preprocess.py --arp -d ../../rustdesk
+          nuget restore msi.sln
+          msbuild msi.sln -t:clean -p:Configuration=Release -p:Platform=x64
+          msbuild msi.sln -p:Configuration=Release -p:Platform=x64 /p:TargetVersion=Windows10
+          $msi = Get-ChildItem ./Package/bin/*/Release/en-us/Package.msi | Select-Object -First 1
+          popd
+          Copy-Item $msi.FullName ./dist/AtlantisNesos-Cliente.msi
+          Remove-Item ./rustdesk/incoming.txt
+          git checkout -- res/msi
+
       - name: Upload exe + msi
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
