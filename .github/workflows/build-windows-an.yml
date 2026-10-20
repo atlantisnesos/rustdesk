@@ -1,7 +1,7 @@
 # Atlantis Nesos - compilacion Windows x64 con la interfaz moderna (Flutter).
 # Basado en los jobs oficiales "generate_bridge" (bridge.yml) y "build-for-windows-flutter"
 # (flutter-build.yml) de RustDesk, recortado a Windows x64 y sin firma ni publicacion.
-name: Build Windows - Atlantis Nesos
+name: Build Windows - Tijarafe
 
 on:
   workflow_dispatch:
@@ -146,7 +146,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
         with:
-          prefix-key: an-windows-2022-flutter
+          prefix-key: tij-windows-2022-flutter
           cache-on-failure: true
 
       - name: Setup vcpkg with Github Actions binary cache
@@ -211,7 +211,7 @@ jobs:
       - name: Upload program folder
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: AtlantisNesos-Remote-carpeta
+          name: Tijarafe-Remote-carpeta
           path: rustdesk
 
       - name: Build self-extracted executable
@@ -223,10 +223,9 @@ jobs:
           python3 ./generate.py -f ../../rustdesk/ -o . -e ../../rustdesk/rustdesk.exe
           popd
           mkdir -p ./dist
-          cp ./target/release/rustdesk-portable-packer.exe ./dist/AtlantisNesos-Remote.exe
+          cp ./target/release/rustdesk-portable-packer.exe ./dist/Tijarafe-Remote.exe
 
       # QuickSupport: mismo programa, pero el .exe pide permisos de administrador al abrirse.
-      # Asi se ven y se controlan las ventanas de Control de cuentas de usuario sin instalar nada.
       # El sufijo -qs activa el modo QuickSupport (solo recibir, sin instalar).
       - name: Build QuickSupport exe (elevado)
         shell: bash
@@ -237,7 +236,7 @@ jobs:
           pushd ./libs/portable
           python3 ./generate.py -f ../../rustdesk/ -o . -e ../../rustdesk/rustdesk.exe
           popd
-          cp ./target/release/rustdesk-portable-packer.exe ./dist/AtlantisNesos-Soporte-qs.exe
+          cp ./target/release/rustdesk-portable-packer.exe ./dist/Tijarafe-Soporte-qs.exe
           git checkout -- res/manifest.xml
 
       - name: Add MSBuild to PATH
@@ -254,14 +253,14 @@ jobs:
           msbuild msi.sln -p:Configuration=Release -p:Platform=x64 /p:TargetVersion=Windows10
           $msi = Get-ChildItem ./Package/bin/*/Release/en-us/Package.msi | Select-Object -First 1
           popd
-          Copy-Item $msi.FullName ./dist/AtlantisNesos-Remote.msi
+          Copy-Item $msi.FullName ./dist/Tijarafe-Remote.msi
 
       # Segundo MSI "Cliente": mismo programa + incoming.txt -> instalado en modo solo recibir
-      - name: Build msi (Cliente, solo recibir)
+      - name: Build msi (Oficina, solo recibir)
         continue-on-error: true
         run: |
           git checkout -- res/msi
-          Set-Content -Path ./rustdesk/incoming.txt -Value 'Atlantis Nesos - modo solo recibir' -NoNewline
+          Set-Content -Path ./rustdesk/incoming.txt -Value 'Ayuntamiento de Tijarafe - modo solo recibir' -NoNewline
           pushd ./res/msi
           python preprocess.py --arp -d ../../rustdesk
           nuget restore msi.sln
@@ -269,13 +268,13 @@ jobs:
           msbuild msi.sln -p:Configuration=Release -p:Platform=x64 /p:TargetVersion=Windows10
           $msi = Get-ChildItem ./Package/bin/*/Release/en-us/Package.msi | Select-Object -First 1
           popd
-          Copy-Item $msi.FullName ./dist/AtlantisNesos-Cliente.msi
+          Copy-Item $msi.FullName ./dist/Tijarafe-Oficina.msi
           Remove-Item ./rustdesk/incoming.txt
           git checkout -- res/msi
 
       - name: Upload exe + msi
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: AtlantisNesos-Remote
+          name: Tijarafe-Remote
           path: dist/
           retention-days: 14
