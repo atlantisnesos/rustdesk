@@ -3022,7 +3022,7 @@ int versionCmp(String v1, String v2) {
 
 String getWindowName({WindowType? overrideType}) {
   // Atlantis Nesos: titulo de ventana (debe coincidir con main.cpp y core_main.rs)
-  const name = 'Soporte - Atlantis Nesos';
+  const name = 'Acceso remoto - Ayuntamiento de Tijarafe';
   switch (overrideType ?? kWindowType) {
     case WindowType.Main:
       return name;

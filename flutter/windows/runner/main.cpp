@@ -89,7 +89,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
     }
   }
   // Atlantis Nesos: titulo de la ventana principal (debe coincidir con getWindowName() y core_main.rs)
-  app_name = L"Soporte - Atlantis Nesos";
+  app_name = L"Acceso remoto - Ayuntamiento de Tijarafe";
 
   // Uri links dispatch
   HWND hwnd = ::FindWindowW(getWindowClassName(), app_name.c_str());
