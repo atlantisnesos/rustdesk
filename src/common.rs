@@ -1256,7 +1256,7 @@ fn get_api_server_(api: String, custom: String) -> String {
             return format!("http://{}", s);
         }
     }
-    "http://51.77.195.165:21114".to_owned()
+    "https://qs.atlantisnesos.com".to_owned() // Atlantis Nesos: API (libreta) por HTTPS
 }
 
 #[inline]
@@ -2405,7 +2405,7 @@ pub fn create_symmetric_key_msg(their_pk_b: [u8; 32]) -> (Bytes, Bytes, secretbo
 
 #[inline]
 pub fn using_public_server() -> bool {
-    // Atlantis Nesos (Tijarafe): servidor propio integrado, nunca el publico
+    // Atlantis Nesos: servidor propio integrado, nunca el publico
     false
 }
 
