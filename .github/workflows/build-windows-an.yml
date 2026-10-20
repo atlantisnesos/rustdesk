@@ -224,8 +224,21 @@ jobs:
           popd
           mkdir -p ./dist
           cp ./target/release/rustdesk-portable-packer.exe ./dist/AtlantisNesos-Remote.exe
-          # Mismo programa; el sufijo -qs activa el modo QuickSupport (solo recibir, sin instalar)
+
+      # QuickSupport: mismo programa, pero el .exe pide permisos de administrador al abrirse.
+      # Asi se ven y se controlan las ventanas de Control de cuentas de usuario sin instalar nada.
+      # El sufijo -qs activa el modo QuickSupport (solo recibir, sin instalar).
+      - name: Build QuickSupport exe (elevado)
+        shell: bash
+        run: |
+          sed -i 's#</assembly>#  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3"><security><requestedPrivileges><requestedExecutionLevel level="requireAdministrator" uiAccess="false"/></requestedPrivileges></security></trustInfo>\n</assembly>#' res/manifest.xml
+          grep -n "requireAdministrator" res/manifest.xml
+          cargo clean --release -p rustdesk-portable-packer
+          pushd ./libs/portable
+          python3 ./generate.py -f ../../rustdesk/ -o . -e ../../rustdesk/rustdesk.exe
+          popd
           cp ./target/release/rustdesk-portable-packer.exe ./dist/AtlantisNesos-Soporte-qs.exe
+          git checkout -- res/manifest.xml
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2

@@ -1256,7 +1256,7 @@ fn get_api_server_(api: String, custom: String) -> String {
             return format!("http://{}", s);
         }
     }
-    "http://141.94.251.158:21114".to_owned()
+    "https://qs.atlantisnesos.com".to_owned() // Atlantis Nesos: API (libreta) por HTTPS
 }
 
 #[inline]
